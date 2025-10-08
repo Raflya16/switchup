@@ -1,0 +1,1 @@
+<span class="font-bold text-2xl text-primary" translate="no">Switch</span><span class="font-bold text-2xl text-gray-800 dark:text-gray-500" translate="no">UP</span>
