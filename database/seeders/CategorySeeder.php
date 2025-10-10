@@ -13,7 +13,10 @@ class CategorySeeder extends Seeder
      * Run the database seeds.
      */
     public function run(): void
-    {
+    {   
+
+        DB::table('categories')->truncate();
+        
         $categories = [
             'Mainan',
             'Elektronik',
@@ -23,7 +26,9 @@ class CategorySeeder extends Seeder
             'Otomotif - Motor',
             'Otomotif - Mobil',
             'Sepeda',
-            'Sepeda Listrik',
+            'Alat Musik',
+            'Olahraga',
+            'Kamera',
         ];
 
         foreach ($categories as $category) {
