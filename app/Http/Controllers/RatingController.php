@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Barter;
 use App\Models\Rating;
+use App\Models\Barter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -11,15 +11,23 @@ class RatingController extends Controller
 {
     public function create(Barter $barter)
     {
-        // Otorisasi: Pastikan status barter "accepted" dan user terlibat
-        if ($barter->status !== 'accepted' || (Auth::id() !== $barter->owner_id && Auth::id() !== $barter->offerer_id)) {
-            abort(403, 'Anda tidak bisa memberi ulasan untuk transaksi ini.');
+        // 1. Cek Otorisasi: Apakah user yang login terlibat dalam barter ini?
+        if (Auth::id() !== $barter->owner_id && Auth::id() !== $barter->offerer_id) {
+            abort(403, 'ANDA TIDAK BISA MEMBERI ULASAN UNTUK TRANSAKSI INI.');
         }
 
-        // Cek apakah user sudah pernah memberi ulasan untuk barter ini
-        $existingRating = Rating::where('barter_id', $barter->id)->where('rater_id', Auth::id())->exists();
-        if ($existingRating) {
-            return redirect()->route('dashboard')->with('error', 'Anda sudah memberikan ulasan untuk transaksi ini.');
+        // 2. Cek Status: Hanya boleh ulas jika status 'accepted' ATAU 'completed'
+        if (!in_array($barter->status, ['accepted', 'completed'])) {
+            abort(403, 'Transaksi belum selesai, Anda belum bisa memberikan ulasan.');
+        }
+
+        // 3. Cek Duplikat: Apakah user ini sudah pernah memberi ulasan sebelumnya?
+        $alreadyRated = Rating::where('barter_id', $barter->id)
+                              ->where('rater_id', Auth::id())
+                              ->exists();
+
+        if ($alreadyRated) {
+            return redirect()->route('barters.index')->with('error', 'Anda sudah memberikan ulasan untuk transaksi ini.');
         }
 
         return view('ratings.create', compact('barter'));
@@ -27,23 +35,21 @@ class RatingController extends Controller
 
     public function store(Request $request, Barter $barter)
     {
-        // Otorisasi (cek ulang)
-        if ($barter->status !== 'accepted' || (Auth::id() !== $barter->owner_id && Auth::id() !== $barter->offerer_id)) {
-            abort(403);
-        }
-        $existingRating = Rating::where('barter_id', $barter->id)->where('rater_id', Auth::id())->exists();
-        if ($existingRating) {
-            abort(403, 'Ulasan sudah ada.');
-        }
-
+        // Validasi Input
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'nullable|string|max:1000',
+            'comment' => 'nullable|string',
         ]);
 
-        // Tentukan siapa yang di-rate
+        // Cek Otorisasi lagi untuk keamanan
+        if (Auth::id() !== $barter->owner_id && Auth::id() !== $barter->offerer_id) {
+            abort(403, 'Akses Ditolak.');
+        }
+
+        // Tentukan siapa yang dinilai (Lawan Bicara)
         $ratedId = (Auth::id() === $barter->owner_id) ? $barter->offerer_id : $barter->owner_id;
 
+        // Simpan Rating
         Rating::create([
             'barter_id' => $barter->id,
             'rater_id' => Auth::id(),
@@ -52,6 +58,6 @@ class RatingController extends Controller
             'comment' => $request->comment,
         ]);
 
-        return redirect()->route('users.show', $ratedId)->with('success', 'Ulasan berhasil dikirim!');
+        return redirect()->route('barters.index')->with('success', 'Ulasan berhasil dikirim! Terima kasih.');
     }
 }

@@ -43,48 +43,64 @@
 
                             <p class="text-gray-700 mt-4 leading-relaxed">{{ $item->description }}</p>
 
-                            @if(Auth::id() !== $item->user_id)
-                                @if($userItems->count() > 0)
-                                <div class="mt-6 border-t border-gray-200 pt-6">
-                                    <h4 class="text-lg font-semibold text-gray-800">Tawarkan Barter dengan Barang Anda:</h4>
-                                    <form method="POST" action="{{ route('barter.offer') }}">
-                                        @csrf
-                                        <input type="hidden" name="requested_item_id" value="{{ $item->id }}">
-                                        
-                                        <div class="mt-4">
-                                            <label for="offered_item_id" class="block text-sm font-medium text-gray-700">Pilih Barang Anda</label>
-                                            <select name="offered_item_id" id="offered_item_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary">
-                                                @foreach ($userItems as $userItem)
-                                                    <option value="{{ $userItem->id }}">{{ $userItem->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    @auth
-                                        <div class="flex items-center justify-end mt-4">
-                                            <x-primary-button>
-                                                Ajukan Penawaran
-                                            </x-primary-button>
-                                        </div>
-                                    @else
+                            @auth
+                                @if(Auth::id() !== $item->user_id)
+                                    
+                                    @if($existingOffer && $existingOffer->status == 'pending')
                                         <div class="mt-6 border-t border-gray-200 pt-6">
-                                            <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark">
-                                                Login untuk Mengajukan Penawaran
+                                            <button class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-gray-700 bg-gray-200 cursor-not-allowed">
+                                                Menunggu Respon
+                                            </button>
+                                            <p class="text-sm text-gray-500 text-center mt-2">Anda sudah mengirimkan penawaran untuk barang ini.</p>
+                                        </div>
+
+                                    @elseif($existingOffer && $existingOffer->status == 'accepted')
+                                        <div class="mt-6 border-t border-gray-200 pt-6">
+                                            <a href="{{ route('messages.show', $existingOffer->id) }}" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary hover:bg-primary-dark">
+                                                Barter Berhasil! Lihat Percakapan
                                             </a>
                                         </div>
-                                    @endauth
-                                    </form>
-                                </div>
+
+                                    @else
+                                        @if($userItems->count() > 0)
+                                        <div class="mt-6 border-t border-gray-200 pt-6">
+                                            <h4 class="text-lg font-semibold text-gray-800">Tawarkan Barter dengan Barang Anda:</h4>
+                                            <form method="POST" action="{{ route('barter.offer') }}">
+                                                @csrf
+                                                <input type="hidden" name="requested_item_id" value="{{ $item->id }}">
+                                                
+                                                <div class="mt-4">
+                                                    <label for="offered_item_id" class="block text-sm font-medium text-gray-700">Pilih Barang Anda</label>
+                                                    <x-custom-select :options="$userItems" name="offered_item_id" />
+                                                </div>
+
+                                                <div class="flex items-center justify-end mt-4">
+                                                    <x-primary-button>
+                                                        Ajukan Penawaran (1 Token)
+                                                    </x-primary-button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                        @else
+                                        <div class="mt-6 border-t border-gray-200 pt-6">
+                                             <p class="text-red-600">Anda tidak punya barang untuk ditawarkan. <a href="{{ route('items.create') }}" class="underline font-semibold">Tambah barang dulu</a> untuk memulai barter.</p>
+                                        </div>
+                                        @endif
+                                    @endif
+
                                 @else
-                                <div class="mt-6 border-t border-gray-200 pt-6">
-                                     <p class="text-red-600">Anda tidak punya barang untuk ditawarkan. <a href="{{ route('items.create') }}" class="underline font-semibold">Tambah barang dulu</a> untuk memulai barter.</p>
-                                </div>
+                                    <div class="mt-6 border-t border-gray-200 pt-6">
+                                        <p class="text-blue-600 font-semibold">Ini adalah barang milik Anda.</p>
+                                    </div>
                                 @endif
                             @else
                                 <div class="mt-6 border-t border-gray-200 pt-6">
-                                    <p class="text-blue-600 font-semibold">Ini adalah barang milik Anda.</p>
+                                    <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark">
+                                        Login untuk Mengajukan Penawaran
+                                    </a>
                                 </div>
-                            @endif
-                        </div>
+                            @endauth
+                            </div>
                     </div>
                 </div>
             </div>

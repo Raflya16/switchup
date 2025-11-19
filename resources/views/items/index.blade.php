@@ -115,7 +115,7 @@
                 </div>
                 
                 <div class="mt-8">
-                    {{ $items->withQueryString()->links() }}
+                    {{ $items->withQueryString()->fragment('barang-terbaru')->links() }}
                 </div>
             @endif
         </div>

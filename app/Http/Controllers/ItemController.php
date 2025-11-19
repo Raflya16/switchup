@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Barter;
 
 class ItemController extends Controller
 {
@@ -100,11 +101,22 @@ class ItemController extends Controller
      */
     public function show(Item $item)
     {
-        $item->load('images', 'user.ratingsReceived'); // <-- Nama yang benar
+        $item->load('images', 'user.ratingsReceived');
+        
+        $userItems = collect();
+        $existingOffer = null;
+        
+        if (auth()->check()) {
+            $userId = auth()->id();
+            $userItems = Auth::user()->items()->where('status', 'available')->get();
 
-        $userItems = auth()->check() ? Auth::user()->items()->where('status', 'available')->get() : collect();
-
-        return view('items.show', compact('item', 'userItems'));
+            $existingOffer = Barter::where('requested_item_id', $item->id)
+                                ->where('offerer_id', $userId)
+                                ->whereIn('status', ['pending', 'accepted'])
+                                ->first();
+        }
+        
+        return view('items.show', compact('item', 'userItems', 'existingOffer'));
     }
     
     public function edit(Item $item)

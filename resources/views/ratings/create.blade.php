@@ -9,36 +9,24 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-300">
                 <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-semibold">Beri ulasan untuk transaksi barang: "{{ $barter->requestedItem->name }}"</h3>
-                    <p class="text-gray-600 mt-1">Anda bertransaksi dengan: {{ (auth()->id() === $barter->owner_id) ? $barter->offeredItem->user->name : $barter->requestedItem->user->name }}</p>
-
+                    <h3 class="text-lg font-semibold">Bagaimana pengalaman barter Anda?</h3>
+                    
                     <form method="POST" action="{{ route('ratings.store', $barter->id) }}" class="mt-6 space-y-4">
                         @csrf
-
-                        @if ($errors->any())
-                            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-                                <ul class="list-disc list-inside">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
                         <div>
-                            <label for="rating" class="block font-medium text-sm text-gray-700">Rating Bintang</label>
-                            <select name="rating" id="rating" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" required>
-                                <option value="">-- Pilih Rating --</option>
-                                <option value="5">★★★★★ (Luar Biasa)</option>
-                                <option value="4">★★★★☆ (Baik)</option>
-                                <option value="3">★★★☆☆ (Cukup)</option>
-                                <option value="2">★★☆☆☆ (Buruk)</option>
-                                <option value="1">★☆☆☆☆ (Sangat Buruk)</option>
+                            <label for="rating" class="block font-medium text-sm text-gray-700">Rating (1-5)</label>
+                            <select name="rating" id="rating" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm">
+                                <option value="5">5 - Sangat Bagus</option>
+                                <option value="4">4 - Bagus</option>
+                                <option value="3">3 - Biasa Saja</option>
+                                <option value="2">2 - Kurang</option>
+                                <option value="1">1 - Buruk</option>
                             </select>
                         </div>
 
                         <div>
-                            <label for="comment" class="block font-medium text-sm text-gray-700">Komentar (Opsional)</label>
-                            <textarea name="comment" id="comment" rows="4" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm" placeholder="Bagaimana pengalaman barter Anda?"></textarea>
+                            <label for="comment" class="block font-medium text-sm text-gray-700">Komentar</label>
+                            <textarea name="comment" id="comment" rows="4" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm"></textarea>
                         </div>
                         
                         <div class="flex justify-end">

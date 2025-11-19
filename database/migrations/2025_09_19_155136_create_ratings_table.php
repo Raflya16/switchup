@@ -9,14 +9,14 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::create('ratings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('barter_id')->unique()->constrained()->onDelete('cascade');
+            $table->foreignId('barter_id')->constrained()->onDelete('cascade');
             $table->foreignId('rater_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('rated_id')->constrained('users')->onDelete('cascade');
-            $table->unsignedTinyInteger('rating'); // 1-5
+            $table->integer('rating');
             $table->text('comment')->nullable();
             $table->timestamps();
         });

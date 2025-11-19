@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="mb-8">
-                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-900">Selamat datang kembali, <span class="text-primary">{{ auth()->user()->name }}</span>!</h2>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-900">Selamat datang, <span class="text-primary">{{ auth()->user()->name }}</span>!</h2>
                 <p class="text-gray-500">Aktivitas barter Anda.</p>
             </div>
 

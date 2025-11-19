@@ -1,72 +1,135 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Daftar Penawaran') }}
-        </h2>
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">{{ __('Daftar Penawaran') }}</h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div x-data="{ tab: 'masuk' }" class="bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200">
-                <div class="border-b border-gray-200">
+            <div x-data="{ tab: 'masuk' }" class="bg-white dark:bg-white overflow-hidden shadow-sm sm:rounded-lg border border-gray-200 dark:border-gray-300">
+                <div class="border-b border-gray-200 dark:border-gray-300">
                     <nav class="-mb-px flex" aria-label="Tabs">
-                        <button @click="tab = 'masuk'" :class="{'border-primary text-primary-dark': tab === 'masuk', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'masuk'}" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm">
-                            Penawaran Masuk
-                        </button>
-                        <button @click="tab = 'terkirim'" :class="{'border-primary text-primary-dark': tab === 'terkirim', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': tab !== 'terkirim'}" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm">
-                            Penawaran Terkirim
-                        </button>
+                        <button @click="tab = 'masuk'" :class="{'border-primary text-primary-dark': tab === 'masuk', 'border-transparent text-gray-500': tab !== 'masuk'}" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm">Penawaran Masuk</button>
+                        <button @click="tab = 'terkirim'" :class="{'border-primary text-primary-dark': tab === 'terkirim', 'border-transparent text-gray-500': tab !== 'terkirim'}" class="w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm">Penawaran Terkirim</button>
                     </nav>
                 </div>
 
                 <div class="p-6 text-gray-900">
                     <div x-show="tab === 'masuk'">
-                         @if($incomingOffers->isEmpty())
-                            <div class="text-center py-12"><p class="text-gray-500">Belum ada penawaran yang masuk.</p></div>
-                        @else
-                            <div class="space-y-4">
-                                @foreach ($incomingOffers as $offer)
-                                    <div class="p-4 border border-gray-200 rounded-lg flex flex-col md:flex-row items-center justify-between gap-4">
-                                        <div class="flex-grow text-center md:text-left">
-                                            <p>
-                                                <span class="font-semibold">{{ $offer->offerer->name }}</span>
-                                                menawarkan barangnya <span class="font-semibold text-primary">{{ $offer->offeredItem->name }}</span>
-                                                untuk ditukar dengan <span class="font-semibold text-primary">{{ $offer->requestedItem->name }}</span>.
-                                            </p>
-                                        </div>
-                                        <div class="flex items-center space-x-2">
-                                            <a href="{{ route('messages.show', $offer->id) }}" class="px-4 py-2 bg-gray-600 text-white text-sm font-semibold rounded-md hover:bg-gray-700">Pesan</a>
-                                            @if($offer->status == 'pending')
-                                                <form method="POST" action="{{ route('barter.respond', $offer->id) }}"> @csrf <input type="hidden" name="status" value="accepted"> <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-md">Terima</button></form>
-                                                <form method="POST" action="{{ route('barter.respond', $offer->id) }}"> @csrf <input type="hidden" name="status" value="rejected"> <button type="submit" class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-md hover:bg-red-700">Tolak</button></form>
-                                            @elseif($offer->status == 'accepted')
-                                                <span class="px-4 py-2 bg-gray-200 text-gray-500 text-sm font-semibold rounded-md">Diterima</span>
-                                            @elseif($offer->status == 'rejected')
-                                                <span class="px-4 py-2 bg-red-200 text-red-700 text-sm font-semibold rounded-md">Anda Tolak</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
+                        @forelse ($incomingOffers as $offer)
+                        <div class="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <p class="font-bold text-lg">{{ $offer->offerer->name }} <span class="text-sm font-normal text-gray-500">(Penawar)</span></p>
+                                    <p class="text-gray-600">Ingin menukar: <span class="text-primary font-semibold">{{ $offer->offeredItem->name }}</span> dengan <span class="text-primary font-semibold">{{ $offer->requestedItem->name }}</span></p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold 
+                                    {{ $offer->status == 'pending' ? 'bg-yellow-100 text-yellow-800' : '' }}
+                                    {{ $offer->status == 'accepted' ? 'bg-blue-100 text-blue-800' : '' }}
+                                    {{ $offer->status == 'completed' ? 'bg-green-100 text-green-800' : '' }}
+                                    {{ $offer->status == 'rejected' ? 'bg-red-100 text-red-800' : '' }}">
+                                    {{ strtoupper($offer->status) }}
+                                </span>
                             </div>
-                        @endif
+
+                            @if($offer->status == 'pending')
+                                <div class="flex space-x-2">
+                                    <form method="POST" action="{{ route('barter.respond', $offer->id) }}"> @csrf <input type="hidden" name="status" value="accepted"> 
+                                        <button onclick="return confirm('Terima penawaran? 1 Token akan ditahan dari saldo Anda.')" class="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark">Terima (Biaya 1 Token)</button>
+                                    </form>
+                                    <form method="POST" action="{{ route('barter.respond', $offer->id) }}"> @csrf <input type="hidden" name="status" value="rejected"> 
+                                        <button class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Tolak</button>
+                                    </form>
+                                    <a href="{{ route('messages.show', $offer->id) }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded">Chat</a>
+                                </div>
+
+                            @elseif($offer->status == 'accepted' || $offer->status == 'completed')
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 border-t pt-4">
+                                    <div>
+                                        <h4 class="font-semibold mb-2">Pengiriman Barang Anda:</h4>
+                                        @if($offer->resi_owner)
+                                            <p class="text-green-600">Resi: {{ $offer->resi_owner }}</p>
+                                        @else
+                                            <form action="{{ route('barter.resi', $offer->id) }}" method="POST" class="flex gap-2">
+                                                @csrf @method('PATCH')
+                                                <input type="text" name="resi" placeholder="Input No. Resi" class="text-sm rounded border-gray-300 w-full" required>
+                                                <button class="px-3 py-1 bg-gray-800 text-white text-xs rounded">Simpan</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="font-semibold mb-2">Barang dari Penawar:</h4>
+                                        <p class="text-sm mb-2">Resi: {{ $offer->resi_offerer ?? 'Belum diinput' }}</p>
+                                        
+                                        @if(!$offer->confirmed_owner)
+                                            <form action="{{ route('barter.confirm', $offer->id) }}" method="POST">
+                                                @csrf
+                                                <button class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">Konfirmasi Barang Diterima</button>
+                                            </form>
+                                        @else
+                                            <p class="text-green-600 font-bold text-sm">✓ Anda sudah mengonfirmasi penerimaan</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-end gap-2">
+                                     <a href="{{ route('messages.show', $offer->id) }}" class="px-4 py-2 bg-primary text-white rounded">Buka Chat Room</a>
+                                     @if($offer->status == 'completed')
+                                        <a href="{{ route('ratings.create', $offer->id) }}" class="px-4 py-2 bg-yellow-500 text-white rounded">Beri Ulasan</a>
+                                     @endif
+                                </div>
+                            @endif
+                        </div>
+                        @empty
+                        <p class="text-center py-8 text-gray-500">Belum ada penawaran.</p>
+                        @endforelse
                     </div>
 
                     <div x-show="tab === 'terkirim'" style="display: none;">
-                        @if($sentOffers->isEmpty())
-                            <div class="text-center py-12"><p class="text-gray-500">Anda belum pernah mengirim penawaran.</p></div>
-                        @else
-                            <div class="space-y-4">
-                                @foreach ($sentOffers as $offer)
-                                    <div class="p-4 border border-gray-200 rounded-lg">
-                                        <p>Anda menawarkan <span class="font-semibold text-primary">{{ $offer->offeredItem->name }}</span> kepada <span class="font-semibold">{{ $offer->owner->name }}</span>.</p>
-                                        <p class="text-sm mt-1">Status: <span class="font-bold @if($offer->status == 'pending') text-yellow-500 @endif @if($offer->status == 'accepted') text-green-600 @endif @if($offer->status == 'rejected') text-red-600 @endif">{{ ucfirst($offer->status) }}</span></p>
-                                        <div class="mt-4">
-                                            <a href="{{ route('messages.show', $offer->id) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">Lihat Pesan</a>
-                                        </div>
-                                    </div>
-                                @endforeach
+                        @forelse ($sentOffers as $offer)
+                        <div class="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                             <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <p class="font-bold text-lg">Ke: {{ $offer->owner->name }}</p>
+                                    <p class="text-gray-600">Barang Anda: <span class="text-primary font-semibold">{{ $offer->offeredItem->name }}</span></p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold {{ $offer->status == 'pending' ? 'bg-yellow-100 text-yellow-800' : ($offer->status == 'accepted' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100') }}">{{ strtoupper($offer->status) }}</span>
                             </div>
-                        @endif
+
+                            @if($offer->status == 'accepted' || $offer->status == 'completed')
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 border-t pt-4">
+                                    <div>
+                                        <h4 class="font-semibold mb-2">Pengiriman Barang Anda:</h4>
+                                        @if($offer->resi_offerer)
+                                            <p class="text-green-600">Resi: {{ $offer->resi_offerer }}</p>
+                                        @else
+                                            <form action="{{ route('barter.resi', $offer->id) }}" method="POST" class="flex gap-2">
+                                                @csrf @method('PATCH')
+                                                <input type="text" name="resi" placeholder="Input No. Resi" class="text-sm rounded border-gray-300 w-full" required>
+                                                <button class="px-3 py-1 bg-gray-800 text-white text-xs rounded">Simpan</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold mb-2">Barang dari Pemilik:</h4>
+                                        <p class="text-sm mb-2">Resi: {{ $offer->resi_owner ?? 'Belum diinput' }}</p>
+                                        @if(!$offer->confirmed_offerer)
+                                            <form action="{{ route('barter.confirm', $offer->id) }}" method="POST">
+                                                @csrf
+                                                <button class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">Konfirmasi Barang Diterima</button>
+                                            </form>
+                                        @else
+                                            <p class="text-green-600 font-bold text-sm">✓ Anda sudah mengonfirmasi penerimaan</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-end gap-2">
+                                    <a href="{{ route('messages.show', $offer->id) }}" class="px-4 py-2 bg-primary text-white rounded">Buka Chat Room</a>
+                                </div>
+                            @endif
+                        </div>
+                        @empty
+                        <p class="text-center py-8 text-gray-500">Belum ada penawaran terkirim.</p>
+                        @endforelse
                     </div>
                 </div>
             </div>
